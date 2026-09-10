@@ -1,0 +1,135 @@
+﻿<Window
+    x:Class="PicRepo.Client.Views.WinHistory"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctl="clr-namespace:PicRepo.Client.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:PicRepo.Client.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    Title="历史记录"
+    Width="800"
+    Height="450"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="0,0,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                ctl:WatermarkHelper.Watermark="搜索"
+                Background="Transparent"
+                Text="{Binding Keyword, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel
+                Grid.Column="1"
+                Margin="5,0,0,0"
+                Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,5,0"
+                    VerticalAlignment="Center"
+                    Text="日期范围:" />
+                <DatePicker SelectedDate="{Binding StartTime, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Margin="5"
+                    VerticalAlignment="Center"
+                    Text="至" />
+                <DatePicker SelectedDate="{Binding EndTime, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <Button
+                Grid.Column="2"
+                Margin="2,0,0,0"
+                Command="{Binding ClearFilterCommand}"
+                ToolTip="清空筛选">
+                <TextBlock FontFamily="{StaticResource SymbolThemeFontFamily}" Text="&#xE74D;" />
+            </Button>
+        </Grid>
+        <DataGrid
+            Grid.Row="1"
+            AutoGenerateColumns="False"
+            CanUserAddRows="False"
+            ItemsSource="{Binding Items}"
+            SelectedItem="{Binding SelectedItem}">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="{Binding GetMarkdownCommand}" Header="Markdown" />
+                    <MenuItem Command="{Binding GetHTMLCommand}" Header="HTML" />
+                    <MenuItem Command="{Binding GetURLCommand}" Header="URL" />
+                    <Separator />
+                    <MenuItem Command="{Binding GetImageCommand}" Header="查看" />
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Width="80" Header="预览">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image
+                                Width="72"
+                                Height="48"
+                                Source="{Binding Url}"
+                                Stretch="Uniform" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding FileName}"
+                    Header="文件名"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Width="180"
+                    Binding="{Binding UploadTime, StringFormat='yyyy-MM-dd HH:mm:ss'}"
+                    Header="上传时间"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Width="100"
+                    Binding="{Binding FileSize, Converter={StaticResource DataUnitValuesConverter}}"
+                    Header="大小"
+                    IsReadOnly="True" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel
+            Grid.Row="2"
+            Margin="4"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+            <Button
+                Margin="4"
+                Command="{Binding PrevPageCommand}"
+                Content="上一页" />
+            <TextBlock
+                Margin="4"
+                VerticalAlignment="Center"
+                Text="{Binding PageInfo}" />
+            <Button
+                Margin="4"
+                Command="{Binding NextPageCommand}"
+                Content="下一页" />
+            <ComboBox
+                Width="80"
+                Margin="4"
+                SelectedValue="{Binding PageSize}"
+                SelectedValuePath="Content">
+                <ComboBoxItem Content="10" />
+                <ComboBoxItem Content="20" />
+                <ComboBoxItem Content="50" />
+                <ComboBoxItem Content="100" />
+            </ComboBox>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,242 @@
+﻿<Window
+    x:Class="PicRepo.Client.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctl="clr-namespace:PicRepo.Client.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    Title="{Binding Title}"
+    Width="800"
+    Height="450"
+    MinWidth="800"
+    MinHeight="450"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    Icon="pack://application:,,,/App.ico"
+    ShowInTaskbar="{Binding ShowInTaskbar}"
+    WindowStartupLocation="CenterScreen"
+    WindowState="{Binding WindowState}"
+    mc:Ignorable="d">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding ClosingCommand}" PassEventArgsToCommand="True" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="150" />
+            <ColumnDefinition Width="4" />
+            <ColumnDefinition Width="350" MinWidth="350" />
+        </Grid.ColumnDefinitions>
+        <Menu>
+            <MenuItem Header="文件" Icon="{iconPacks:BootstrapIcons Kind=File}">
+                <MenuItem
+                    Command="{Binding UploadImageCommand}"
+                    Header="上传图片"
+                    Icon="{iconPacks:BootstrapIcons Kind=CloudUpload}" />
+                <MenuItem
+                    Command="{Binding OpenHistoryCommand}"
+                    Header="历史记录"
+                    Icon="{iconPacks:BootstrapIcons Kind=ClockHistory}" />
+                <MenuItem
+                    Header="相册"
+                    Icon="{iconPacks:BootstrapIcons Kind=JournalAlbum}"
+                    Visibility="Collapsed" />
+                <Separator />
+                <MenuItem
+                    Command="{Binding ExitCommand}"
+                    Header="退出"
+                    Icon="{iconPacks:BootstrapIcons Kind=XLg}" />
+            </MenuItem>
+            <MenuItem Header="设置" Icon="{iconPacks:BootstrapIcons Kind=Nut}">
+                <MenuItem
+                    Command="{Binding OpenSetWinCommand}"
+                    Header="设置"
+                    Icon="{iconPacks:BootstrapIcons Kind=Nut}" />
+                <Separator />
+                <MenuItem
+                    Command="{Binding OpenHelpWinCommand}"
+                    Header="帮助"
+                    Icon="{iconPacks:BootstrapIcons Kind=QuestionCircle}" />
+                <MenuItem
+                    Command="{Binding OpenAboutWinCommand}"
+                    Header="关于"
+                    Icon="{iconPacks:BootstrapIcons Kind=ExclamationCircle}" />
+            </MenuItem>
+        </Menu>
+        <Border
+            Grid.Row="1"
+            Margin="10,10,0,10"
+            AllowDrop="True"
+            BorderBrush="#b6d1ed"
+            BorderThickness="1,2,4,6"
+            CornerRadius="{DynamicResource OverlayCornerRadius}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="PreviewDragOver">
+                    <i:InvokeCommandAction Command="{Binding PreviewDragOverCommand}" PassEventArgsToCommand="True" />
+                </i:EventTrigger>
+                <i:EventTrigger EventName="Drop">
+                    <i:InvokeCommandAction Command="{Binding UploadImageDropCommand}" PassEventArgsToCommand="True" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}" />
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource LayerFillColorAltBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="15" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Margin="0,0,0,10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Text="将文件拖拽到此区域" />
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,0,0,10"
+                    HorizontalAlignment="Center"
+                    Text="或" />
+                <Button
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Command="{Binding UploadImageCommand}"
+                    Content="点击上传" />
+                <ProgressBar
+                    Grid.Row="3"
+                    Height="5"
+                    Margin="5"
+                    IsIndeterminate="True"
+                    Visibility="{Binding IsUploading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </Grid>
+        </Border>
+        <GridSplitter Grid.Row="1" Grid.Column="1" />
+        <Border
+            Grid.Row="1"
+            Grid.Column="2"
+            Margin="0,10,10,10"
+            Padding="5"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1,2,4,6"
+            CornerRadius="{StaticResource OverlayCornerRadius}">
+            <Grid Background="{DynamicResource AccentColorDark2BrushKey}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Margin="5">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="历史记录" />
+                </StackPanel>
+                <Grid Grid.Row="1" Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        ctl:WatermarkHelper.Watermark="搜索"
+                        Background="Transparent"
+                        Text="{Binding Keyword, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="2,0,0,0"
+                        Visibility="Collapsed">
+                        <TextBlock FontFamily="{StaticResource SymbolThemeFontFamily}" Text="&#xE71E;" />
+                    </Button>
+                </Grid>
+                <ListBox
+                    Grid.Row="2"
+                    Margin="5"
+                    ItemsSource="{Binding ShowItems}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    SelectedItem="{Binding SelectedHisItem}">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{Binding GetMarkdownCommand}" Header="Markdown" />
+                            <MenuItem Command="{Binding GetHTMLCommand}" Header="HTML" />
+                            <MenuItem Command="{Binding GetURLCommand}" Header="URL" />
+                            <Separator />
+                            <MenuItem Command="{Binding GetImageCommand}" Header="查看" />
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                    <ListBox.ItemContainerStyle>
+                        <Style BasedOn="{StaticResource {x:Type ListBoxItem}}" TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="HorizontalAlignment" Value="Left" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="auto" />
+                                </Grid.ColumnDefinitions>
+                                <Image
+                                    Grid.RowSpan="2"
+                                    Width="48"
+                                    Height="27"
+                                    Source="{Binding Url}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Left"
+                                    Text="{Binding FileName}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <Grid Grid.Row="1" Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        HorizontalAlignment="Left"
+                                        Style="{DynamicResource CaptionTextBlockStyle}"
+                                        Text="{Binding UploadTime, StringFormat='yyyy-MM-dd HH:mm:ss'}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Right"
+                                        Style="{DynamicResource CaptionTextBlockStyle}"
+                                        Text="{Binding FileSize, Converter={StaticResource DataUnitValuesConverter}}" />
+                                </Grid>
+                                <Button
+                                    Grid.RowSpan="2"
+                                    Grid.Column="2"
+                                    Background="Transparent"
+                                    Command="{Binding DataContext.GetDefaultClipboardCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListBox}}">
+                                    <TextBlock FontFamily="{StaticResource SymbolThemeFontFamily}" Text="&#xE8C8;" />
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
