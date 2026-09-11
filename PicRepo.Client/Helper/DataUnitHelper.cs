@@ -1,4 +1,5 @@
 ﻿namespace PicRepo.Client.Helper;
+
 public class DataUnitHelper
 {
     private static readonly ulong TbLength = Convert.ToUInt64(Math.Pow(1024, 4));

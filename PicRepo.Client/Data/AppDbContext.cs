@@ -22,9 +22,12 @@ namespace PicRepo.Client.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<UploadHistory>()
-                .ToTable("UploadHistory")
-                .HasKey(h => h.Id);
+            modelBuilder.Entity<UploadHistory>(entity =>
+            {
+                entity.ToTable("UploadHistory");
+                entity.HasKey(h => h.Id);
+                entity.HasIndex(h => h.UploadTime);
+            });
         }
     }
 }

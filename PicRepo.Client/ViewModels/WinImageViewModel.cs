@@ -3,7 +3,7 @@ using NLog;
 
 namespace PicRepo.Client.ViewModels
 {
-    public class WinImageViewModel:BindableBase
+    public class WinImageViewModel : BindableBase
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private WebView2? webView;
@@ -12,6 +12,7 @@ namespace PicRepo.Client.ViewModels
         public bool IsLoading { get; set; }
 
         public DelegateCommand SearchCommand { get; }
+
         public WinImageViewModel()
         {
             Url = "";
@@ -46,9 +47,8 @@ namespace PicRepo.Client.ViewModels
         {
             try
             {
-
                 IsLoading = true;
-                this.webView = webView; 
+                this.webView = webView;
                 var tcs = new TaskCompletionSource<bool>();
                 webView.CoreWebView2.NavigationCompleted += (s, e) =>
                 {

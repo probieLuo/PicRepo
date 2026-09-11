@@ -1,8 +1,6 @@
 ﻿using PicRepo.Client.ViewModels;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
 
 namespace PicRepo.Client.Views
 {
@@ -13,11 +11,12 @@ namespace PicRepo.Client.Views
     {
         public WinMini()
         {
-            InitializeComponent(); 
+            InitializeComponent();
         }
 
         private Point _downPosition;
         private bool _isDragging;
+
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _downPosition = e.GetPosition(this);
@@ -53,7 +52,7 @@ namespace PicRepo.Client.Views
 
             if (!_isDragging)
             {
-                if(DataContext is WinMiniViewModel vm)
+                if (DataContext is WinMiniViewModel vm)
                 {
                     vm.UploadImageCommand.Execute();
                 }

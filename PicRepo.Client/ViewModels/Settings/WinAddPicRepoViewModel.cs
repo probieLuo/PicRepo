@@ -1,16 +1,19 @@
-﻿using System.Windows;
+﻿using PicRepo.Client.Helper;
+using System.Windows;
 
 namespace PicRepo.Client.ViewModels.Settings
 {
     internal class WinAddPicRepoViewModel : BindableBase
     {
         public string NewPicRepoName { get; set; }
-
+        public List<PicRepoType> PicRepoTypes { get; set; } = [.. Enum.GetValues<PicRepoType>()];
+        public PicRepoType SelectedItem { get; set; }
         public DelegateCommand AddPicRepoCommand { get; }
 
         public WinAddPicRepoViewModel()
         {
             AddPicRepoCommand = new DelegateCommand(AddPicRepo);
+            SelectedItem = PicRepoTypes.First();
         }
 
         private void AddPicRepo()

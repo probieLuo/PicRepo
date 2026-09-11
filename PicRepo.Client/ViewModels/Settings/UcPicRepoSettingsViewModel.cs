@@ -1,4 +1,5 @@
-﻿using PicRepo.Client.Helper;
+﻿using DynamicData.Binding;
+using PicRepo.Client.Helper;
 using PicRepo.Client.Models;
 using PicRepo.Client.Views.Settings;
 using System.Collections.ObjectModel;
@@ -11,8 +12,10 @@ namespace PicRepo.Client.ViewModels.Settings
         private readonly IContainerProvider container;
         private readonly IAppSettings appSettings;
 
-        public ObservableCollection<GitHubPicRepoConfig> PicRepoConfigs { get; set; }
-        public GitHubPicRepoConfig? SelectedConfig { get; set; }
+        public ObservableCollection<IPicRepoConfig> PicRepoConfigs { get; set; }
+        public IPicRepoConfig? SelectedConfig { get; set; }
+        public GitHubPicRepoConfig? SelectedGithubConfig { get; set;}
+        public GiteePicRepoConfig? SelectedGiteeConfig { get; set; }
 
         public DelegateCommand AddConfigCommand { get; }
         public DelegateCommand SaveConfigCommand { get; }
@@ -25,27 +28,37 @@ namespace PicRepo.Client.ViewModels.Settings
             this.appSettings = appSettings;
 
             // Use UI copies of stored configs so we don't mutate appSettings instances (avoid wiping stored/encrypted tokens)
-            PicRepoConfigs = new ObservableCollection<GitHubPicRepoConfig>(
-                appSettings.PicRepoConfigs
-                    .OfType<GitHubPicRepoConfig>()
-                    .Select(c => new GitHubPicRepoConfig
-                    {
-                        PicRepoType = c.PicRepoType,
-                        IsDefault = c.IsDefault,
-                        Name = c.Name,
-                        Token = string.Empty, // do not expose stored/encrypted token in UI
-                        ProductHeader = c.ProductHeader,
-                        Owner = c.Owner,
-                        Repo = c.Repo,
-                        Branch = c.Branch
-                    })
-            );
+            PicRepoConfigs = new ObservableCollection<IPicRepoConfig>(appSettings.PicRepoConfigs);
             SelectedConfig = PicRepoConfigs.FirstOrDefault(i => i.IsDefault == true);
 
             AddConfigCommand = new DelegateCommand(OnAddConfig);
             SaveConfigCommand = new DelegateCommand(OnSaveConfig);
             SetDefaultCommand = new DelegateCommand(OnSetDefault);
             DeleteConfigCommand = new DelegateCommand(OnDeleteConfig);
+
+            this.WhenPropertyChanged(t => t.SelectedConfig).Subscribe(config =>
+            {
+                if(config!=null && config.Value != null)
+                {
+                    switch(config.Value.PicRepoType)
+                    {
+                        case PicRepoType.GitHub:
+                            if(config.Value is GitHubPicRepoConfig githubconfig)
+                            {
+                                SelectedGithubConfig = githubconfig;
+                                SelectedGiteeConfig = null;
+                            }
+                            break;
+                        case PicRepoType.Gitee:
+                            if (config.Value is GiteePicRepoConfig giteeconfig)
+                            {
+                                SelectedGiteeConfig = giteeconfig;
+                                SelectedGithubConfig = null;
+                            }
+                            break;
+                    }
+                }
+            });
         }
 
         private void OnDeleteConfig()
@@ -73,11 +86,11 @@ namespace PicRepo.Client.ViewModels.Settings
                 {
                     existingConfig.IsDefault = true;
                     SelectedConfig.IsDefault = true;
-                    foreach (var config in appSettings.PicRepoConfigs.Where(i => i != existingConfig && i.PicRepoType == existingConfig.PicRepoType))
+                    foreach (var config in appSettings.PicRepoConfigs.Where(i => i != existingConfig))
                     {
                         config.IsDefault = false;
                     }
-                    foreach (var config in PicRepoConfigs.Where(i => i != SelectedConfig && i.PicRepoType == SelectedConfig.PicRepoType))
+                    foreach (var config in PicRepoConfigs.Where(i => i != SelectedConfig))
                     {
                         config.IsDefault = false;
                     }
@@ -88,30 +101,58 @@ namespace PicRepo.Client.ViewModels.Settings
 
         private void OnSaveConfig()
         {
-            if (SelectedConfig != null)
+            if (SelectedGithubConfig != null)
             {
-                var existingConfig = appSettings.PicRepoConfigs.FirstOrDefault(i => i.Name == SelectedConfig.Name && i.PicRepoType == SelectedConfig.PicRepoType) as GitHubPicRepoConfig;
+                var existingConfig = appSettings.PicRepoConfigs.FirstOrDefault(i => i.Name == SelectedGithubConfig.Name && i.PicRepoType == SelectedGithubConfig.PicRepoType) as GitHubPicRepoConfig;
                 if (existingConfig != null)
                 {
                     // Only overwrite stored token when user provided a new one in UI
-                    if (!string.IsNullOrEmpty(SelectedConfig.Token))
+                    if (!string.IsNullOrEmpty(SelectedGithubConfig.Token))
                     {
-                        existingConfig.Token = EncryptionHelper.EncryptString(SelectedConfig.Token);
+                        existingConfig.Token = EncryptionHelper.EncryptString(SelectedGithubConfig.Token);
                     }
-                    existingConfig.Owner = SelectedConfig.Owner;
-                    existingConfig.Repo = SelectedConfig.Repo;
-                    existingConfig.Branch = SelectedConfig.Branch;
+                    existingConfig.Owner = SelectedGithubConfig.Owner;
+                    existingConfig.Repo = SelectedGithubConfig.Repo;
+                    existingConfig.Branch = SelectedGithubConfig.Branch;
                 }
                 else
                 {
                     // For new config, encrypt token before storing
-                    if (!string.IsNullOrEmpty(SelectedConfig.Token))
+                    if (!string.IsNullOrEmpty(SelectedGithubConfig.Token))
                     {
-                        SelectedConfig.Token = EncryptionHelper.EncryptString(SelectedConfig.Token);
+                        SelectedGithubConfig.Token = EncryptionHelper.EncryptString(SelectedGithubConfig.Token);
                     }
-                    appSettings.PicRepoConfigs.Add(SelectedConfig);
+                    appSettings.PicRepoConfigs.Add(SelectedGithubConfig);
                 }
                 appSettings.SaveConfig();
+                SetDefaultCommand.Execute();
+            }
+
+            if (SelectedGiteeConfig != null)
+            {
+                var existingConfig = appSettings.PicRepoConfigs.FirstOrDefault(i => i.Name == SelectedGiteeConfig.Name && i.PicRepoType == SelectedGiteeConfig.PicRepoType) as GiteePicRepoConfig;
+                if (existingConfig != null)
+                {
+                    // Only overwrite stored token when user provided a new one in UI
+                    if (!string.IsNullOrEmpty(SelectedGiteeConfig.Token))
+                    {
+                        existingConfig.Token = EncryptionHelper.EncryptString(SelectedGiteeConfig.Token);
+                    }
+                    existingConfig.Owner = SelectedGiteeConfig.Owner;
+                    existingConfig.Repo = SelectedGiteeConfig.Repo;
+                    existingConfig.Branch = SelectedGiteeConfig.Branch;
+                }
+                else
+                {
+                    // For new config, encrypt token before storing
+                    if (!string.IsNullOrEmpty(SelectedGiteeConfig.Token))
+                    {
+                        SelectedGiteeConfig.Token = EncryptionHelper.EncryptString(SelectedGiteeConfig.Token);
+                    }
+                    appSettings.PicRepoConfigs.Add(SelectedGiteeConfig);
+                }
+                appSettings.SaveConfig();
+                SetDefaultCommand.Execute();
             }
         }
 
@@ -123,15 +164,26 @@ namespace PicRepo.Client.ViewModels.Settings
             win.Owner = Application.Current.Windows.Cast<Window>().First((Window i) => i.IsActive);
             if (win.ShowDialog() == true)
             {
-                if (PicRepoConfigs.Any(i => i.Name == vm.NewPicRepoName))
+                if (PicRepoConfigs.Any(i => i.Name == vm.NewPicRepoName && i.PicRepoType == vm.SelectedItem))
                 {
-                    SelectedConfig = PicRepoConfigs.FirstOrDefault(i => i.Name == vm.NewPicRepoName);
+                    SelectedConfig = PicRepoConfigs.FirstOrDefault(i => i.Name == vm.NewPicRepoName && i.PicRepoType == vm.SelectedItem);
                 }
                 else
                 {
-                    var newConfig = new GitHubPicRepoConfig { Name = vm.NewPicRepoName };
-                    PicRepoConfigs.Add(newConfig);
-                    SelectedConfig = newConfig;
+                    switch (vm.SelectedItem)
+                    {
+                        case PicRepoType.GitHub:
+                            var newgithubConfig = new GitHubPicRepoConfig { Name = vm.NewPicRepoName };
+                            PicRepoConfigs.Add(newgithubConfig);
+                            SelectedConfig = newgithubConfig;
+                            break;
+                        case PicRepoType.Gitee:
+                            var newgiteeConfig = new GiteePicRepoConfig { Name = vm.NewPicRepoName };
+                            PicRepoConfigs.Add(newgiteeConfig);
+                            SelectedConfig = newgiteeConfig;
+                            break;
+                    }
+                    
                 }
             }
         }

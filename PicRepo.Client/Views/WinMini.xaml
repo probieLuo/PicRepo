@@ -8,8 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
     Title="WinMini"
-    Width="70"
-    Height="70"
+    Width="60"
+    Height="60"
     prism:ViewModelLocator.AutoWireViewModel="True"
     AllowsTransparency="True"
     Background="Transparent"
@@ -21,17 +21,17 @@
     mc:Ignorable="d">
     <Window.Clip>
         <EllipseGeometry
-            Center="35,35"
-            RadiusX="35"
-            RadiusY="35" />
+            Center="30,30"
+            RadiusX="30"
+            RadiusY="30" />
     </Window.Clip>
 
     <Grid>
         <Border
-            Background="LightBlue"
+            Background="#8080ff"
             BorderBrush="White"
             BorderThickness="3"
-            CornerRadius="35"
+            CornerRadius="30"
             Cursor="Hand"
             MouseLeftButtonDown="Border_MouseLeftButtonDown"
             MouseLeftButtonUp="Border_MouseLeftButtonUp"

@@ -31,6 +31,7 @@ namespace PicRepo.Client.ViewModels
         public string? Keyword { get; set; }
         public ObservableCollection<HisItem> HisItems { get; set; }
         public HisItem? SelectedHisItem { get; set; }
+
         [DependsOn(nameof(HisItems), nameof(Keyword))]
         public IEnumerable<HisItem>? ShowItems
         {
@@ -44,6 +45,7 @@ namespace PicRepo.Client.ViewModels
                 return HisItems.Where(s => s.FileName.Contains(Keyword, StringComparison.OrdinalIgnoreCase));
             }
         }
+
         public bool IsUploading { get; set; } = false;
 
         public DelegateCommand LoadedCommand { get; }
@@ -121,40 +123,44 @@ namespace PicRepo.Client.ViewModels
 
         private void OnGetURL()
         {
-            if(SelectedHisItem == null) return;
+            if (SelectedHisItem == null) return;
             Clipboard.SetText($"{SelectedHisItem.Url}");
         }
 
         private void OnGetHTML()
         {
-            if(SelectedHisItem == null) return;
+            if (SelectedHisItem == null) return;
             Clipboard.SetText($"<img src=\"{SelectedHisItem.Url}\" alt=\"{SelectedHisItem.FileName}\" />");
         }
 
         private void OnGetMarkdown()
         {
-            if(SelectedHisItem == null) return;
+            if (SelectedHisItem == null) return;
             Clipboard.SetText($"![]({SelectedHisItem.Url})");
         }
 
         private void OnGetDefaultClipboard()
         {
-            switch(appSettings.CopyType)
+            switch (appSettings.CopyType)
             {
                 case CopyType.URL:
                     OnGetURL();
                     break;
+
                 case CopyType.HTML:
                     OnGetHTML();
                     break;
+
                 case CopyType.Markdown:
                     OnGetMarkdown();
                     break;
+
                 default:
                     OnGetURL();
                     break;
             }
         }
+
         private void GetDefaultClipboard(string url)
         {
             switch (appSettings.CopyType)
@@ -162,17 +168,21 @@ namespace PicRepo.Client.ViewModels
                 case CopyType.URL:
                     Clipboard.SetText($"{url}");
                     break;
+
                 case CopyType.HTML:
                     Clipboard.SetText($"<img src=\"{url}\" alt=\"alt\" />");
                     break;
+
                 case CopyType.Markdown:
                     Clipboard.SetText($"![]({url})");
                     break;
+
                 default:
                     Clipboard.SetText($"{url}");
                     break;
             }
         }
+
         private void OnLoaded()
         {
             Application.Current.Dispatcher.BeginInvoke(new Action(async () => await Refresh()),
@@ -215,7 +225,9 @@ namespace PicRepo.Client.ViewModels
                 string filePath = files[0];
                 if (!File.Exists(filePath)) return;
 
-                GitHubPicRepoConfig? config = appSettings.PicRepoConfigs.FirstOrDefault(c => c.IsDefault && c.PicRepoType == PicRepoType.GitHub) as GitHubPicRepoConfig;
+                IPicRepoConfig? config = appSettings.PicRepoConfigs.FirstOrDefault(c => c.IsDefault);
+                
+                
                 if (config != null)
                 {
                     var token = PicRepo.Client.Helper.EncryptionHelper.DecryptString(config.Token);
@@ -233,7 +245,7 @@ namespace PicRepo.Client.ViewModels
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 trayIcon?.ShowBalloonTip("错误", $"图片上传失败！{ex.Message}", BalloonIcon.Error);
                 _logger.Error(ex, "图片上传失败");

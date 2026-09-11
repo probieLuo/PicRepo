@@ -1,13 +1,10 @@
 ﻿using Hardcodet.Wpf.TaskbarNotification;
-using Mapster;
 using Microsoft.Win32;
 using PicRepo.Client.Helper;
 using PicRepo.Client.Models;
 using PicRepo.Client.Services;
 using PicRepo.Client.Views;
-using System.ComponentModel;
 using System.IO;
-using System.Security.Policy;
 using System.Windows;
 
 namespace PicRepo.Client.ViewModels
@@ -96,12 +93,15 @@ namespace PicRepo.Client.ViewModels
                             case CopyType.URL:
                                 Clipboard.SetText($"{result.url}");
                                 break;
+
                             case CopyType.HTML:
                                 Clipboard.SetText($"<img src=\"{result.url}\" alt=\"alt\" />");
                                 break;
+
                             case CopyType.Markdown:
                                 Clipboard.SetText($"![]({result.url})");
                                 break;
+
                             default:
                                 Clipboard.SetText($"{result.url}");
                                 break;

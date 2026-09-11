@@ -3,7 +3,6 @@ using SharpYaml;
 using SharpYaml.Serialization;
 using System.IO;
 using System.Text;
-using System.Windows;
 
 namespace PicRepo.Client.Helper;
 
@@ -75,6 +74,7 @@ public interface IPicRepoConfig
     string Name { get; set; }
     bool IsDefault { get; set; }
 }
+
 public enum PicRepoType
 {
     GitHub = 0,
@@ -101,5 +101,5 @@ public class GiteePicRepoConfig : BindableBase, IPicRepoConfig
     public string Token { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string Repo { get; set; } = string.Empty;
-    public string Branch { get; set; } = "main";
+    public string Branch { get; set; } = "master";
 }

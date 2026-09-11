@@ -2,7 +2,6 @@
 using Octokit;
 using PicRepo.Client.Data;
 using PicRepo.Client.Models;
-using System.ComponentModel;
 
 namespace PicRepo.Client.Services
 {
@@ -32,7 +31,7 @@ namespace PicRepo.Client.Services
         /// 将图片（字节数组）上传到指定仓库的指定路径。如果文件已存在则更新，否则创建新文件。
         /// 返回可直接访问的 raw.githubusercontent 链接（基于 branch）。
         /// </summary>
-        public async Task<string> UploadImageAsync(byte[] imageBytes, string pathInRepo, string commitMessage, string branch = "main")
+        private async Task<string> UploadImageAsync(byte[] imageBytes, string pathInRepo, string commitMessage, string branch = "main")
         {
             if (imageBytes == null || imageBytes.Length == 0) throw new ArgumentException("imageBytes is empty", nameof(imageBytes));
             if (string.IsNullOrWhiteSpace(pathInRepo)) throw new ArgumentException("pathInRepo required", nameof(pathInRepo));
@@ -72,7 +71,7 @@ namespace PicRepo.Client.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("上传图片到 GitHub 失败", ex);
+                throw new InvalidOperationException($"上传图片到 GitHub 失败: {ex.Message}", ex);
             }
         }
 

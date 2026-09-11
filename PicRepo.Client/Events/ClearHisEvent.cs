@@ -1,6 +1,6 @@
 ﻿namespace PicRepo.Client.Events
 {
-    public class ClearHisEvent: PubSubEvent
+    public class ClearHisEvent : PubSubEvent
     {
     }
 }

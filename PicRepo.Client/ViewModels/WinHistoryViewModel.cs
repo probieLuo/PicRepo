@@ -1,11 +1,9 @@
 ﻿using DynamicData.Binding;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 using PicRepo.Client.Data;
 using PicRepo.Client.Helper;
 using PicRepo.Client.Models;
 using PicRepo.Client.Views;
-using PropertyChanged;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
@@ -50,6 +48,7 @@ namespace PicRepo.Client.ViewModels
         //    }
         //}
         public ObservableCollection<HisItem> Items { get; set; } = new ObservableCollection<HisItem>();
+
         public HisItem? SelectedItem { get; set; }
 
         public int PageIndex { get; set; } = 1;
@@ -84,7 +83,7 @@ namespace PicRepo.Client.ViewModels
             GetURLCommand = new DelegateCommand(OnGetURL);
             GetImageCommand = new DelegateCommand(OnGetImage);
 
-            this.WhenPropertyChanged(t=>t.PageSize)
+            this.WhenPropertyChanged(t => t.PageSize)
                 .Throttle(TimeSpan.FromMilliseconds(500), RxApp.TaskpoolScheduler)
                 .Subscribe(async _ =>
             {
@@ -100,16 +99,18 @@ namespace PicRepo.Client.ViewModels
             });
             this.WhenPropertyChanged(t => t.StartTime)
                 .Throttle(TimeSpan.FromMilliseconds(500), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => { 
-                PageIndex = 1;
-                await LoadPageAsync();
-            });
+                .Subscribe(async _ =>
+                {
+                    PageIndex = 1;
+                    await LoadPageAsync();
+                });
             this.WhenPropertyChanged(t => t.EndTime)
                 .Throttle(TimeSpan.FromMilliseconds(500), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => { 
-                PageIndex = 1;
-                await LoadPageAsync();
-            });
+                .Subscribe(async _ =>
+                {
+                    PageIndex = 1;
+                    await LoadPageAsync();
+                });
         }
 
         private async Task OnLoaded()
@@ -213,9 +214,11 @@ namespace PicRepo.Client.ViewModels
                 case CopyType.HTML:
                     OnGetHTML();
                     break;
+
                 case CopyType.Markdown:
                     OnGetMarkdown();
                     break;
+
                 default:
                     OnGetURL();
                     break;
