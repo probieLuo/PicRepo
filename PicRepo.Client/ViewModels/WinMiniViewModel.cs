@@ -78,12 +78,11 @@ namespace PicRepo.Client.ViewModels
             if (dlg.ShowDialog() == true)
             {
                 string filePath = dlg.FileName;
-                GitHubPicRepoConfig? config = appSettings.PicRepoConfigs.FirstOrDefault(c => c.IsDefault && c.PicRepoType == PicRepoType.GitHub) as GitHubPicRepoConfig;
+                IPicRepoConfig? config = appSettings.PicRepoConfigs.FirstOrDefault(c => c.IsDefault);
                 if (config != null)
                 {
-                    var token = PicRepo.Client.Helper.EncryptionHelper.DecryptString(config.Token);
-                    GithubApiService apiService = new(config.ProductHeader, token, config.Owner, config.Repo);
-                    var result = await apiService.UploadImageFromFileAsync(filePath, $"{Path.GetFileName(filePath)}", "Add image", config.Branch);
+                    PicRepoService repoService = new PicRepoService();
+                    var result = await repoService.UploadAsync(config, filePath);
 
                     if (!string.IsNullOrEmpty(result.url))
                     {

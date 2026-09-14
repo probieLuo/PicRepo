@@ -15,11 +15,4 @@ public class UploadFileReq
 
     [JsonPropertyName("branch")]
     public string Branch { get; set; }
-
-    public async Task SetContentAsync(string localFilePath)
-    {
-        if (string.IsNullOrWhiteSpace(localFilePath)) throw new ArgumentException("localFilePath required", nameof(localFilePath));
-        var bytes = await System.IO.File.ReadAllBytesAsync(localFilePath);
-        Content = Convert.ToBase64String(bytes);
-    }
 }
