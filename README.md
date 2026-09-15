@@ -142,7 +142,12 @@ dotnet run --project PicRepo.Client/PicRepo.Client.csproj
 - 仓库名 github/gitee 仓库，最好创建公开仓库
 - 用户名 
 - 分支 一般来说github默认main，gitee默认master
-- Token [创建token](#github--gitee-token-申请步骤)
+- Token [github/gitee token 申请步骤](#github--gitee-token-申请步骤)
+
+例：
+
+![](https://github.com/probieLuo/PicRepo/blob/master/resources/%E6%96%B0%E5%BB%BA%E5%9B%BE%E5%BA%8A%E9%85%8D%E7%BD%AE01.png?raw=true)
+![](https://github.com/probieLuo/PicRepo/blob/master/resources/%E6%96%B0%E5%BB%BA%E5%9B%BE%E5%BA%8A%E9%85%8D%E7%BD%AE02.png?raw=true)
 
 说明：
 
