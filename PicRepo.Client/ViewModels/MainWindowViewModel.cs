@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using System.Diagnostics;
 
 namespace PicRepo.Client.ViewModels
 {
@@ -283,6 +284,17 @@ namespace PicRepo.Client.ViewModels
 
         private void OnOpenHelpWin()
         {
+            var url = "https://github.com/probieLuo/PicRepo#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95";
+            try
+            {
+                var psi = new ProcessStartInfo { FileName = url, UseShellExecute = true };
+                Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                trayIcon?.ShowBalloonTip("错误", $"无法打开帮助链接：{ex.Message}", BalloonIcon.Error);
+                _logger.Error(ex, "打开帮助链接失败");
+            }
         }
 
         private void OnOpenHistory()

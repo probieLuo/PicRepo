@@ -60,6 +60,11 @@ namespace PicRepo.Client.ViewModels.Settings
                             break;
                     }
                 }
+                else
+				{
+					SelectedGithubConfig = null;
+					SelectedGiteeConfig = null;
+				}
             });
         }
 

@@ -53,6 +53,11 @@ PicRepo 是一个基于 Windows WPF 的图片托管工具，适合把本地图�
 
 ### 界面截图
 
+![](https://github.com/probieLuo/PicRepo/blob/master/resources/%E4%B8%BB%E7%AA%97%E5%8F%A3.png?raw=true)
+![](https://github.com/probieLuo/PicRepo/blob/master/resources/%E5%8F%B3%E9%94%AE%E6%89%93%E5%BC%80%E8%8F%9C%E5%8D%95.png?raw=true)
+![](https://github.com/probieLuo/PicRepo/blob/master/resources/%E6%9F%A5%E7%9C%8B%E5%A4%A7%E5%9B%BE.png?raw=true)
+![](https://github.com/probieLuo/PicRepo/blob/master/resources/%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95.png?raw=true)
+![](https://github.com/probieLuo/PicRepo/blob/master/resources/Mini%E7%AA%97%E5%8F%A3.png?raw=true)
 
 ## 项目结构
 
@@ -124,19 +129,20 @@ dotnet run --project PicRepo.Client/PicRepo.Client.csproj
 ### 1. 配置图床
 
 启动程序后，打开“设置”窗口，进入图床配置页。
-
-可添加以下任一类型：
+点击`+`按钮
+可添加以下图床类型：
 
 - GitHub
 - Gitee
 
-配置项通常包括：
+图床配置名任意填写
 
-- 配置名称
-- 所属用户
-- 仓库名
-- 分支名
-- Token
+填写配置项
+
+- 仓库名 github/gitee 仓库，最好创建公开仓库
+- 用户名 
+- 分支 一般来说github默认main，gitee默认master
+- Token [创建token](#github--gitee-token-申请步骤)
 
 说明：
 
