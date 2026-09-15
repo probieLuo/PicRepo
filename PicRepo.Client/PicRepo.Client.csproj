@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>App.ico</ApplicationIcon>
 	<NoWarn>$(NoWarn);WPF0001</NoWarn>
-	<Version>0.2.0</Version>
+	<Version>0.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
