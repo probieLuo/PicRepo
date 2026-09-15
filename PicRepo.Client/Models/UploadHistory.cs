@@ -1,4 +1,6 @@
-﻿namespace PicRepo.Client.Models
+﻿using PicRepo.Client.Helper;
+
+namespace PicRepo.Client.Models
 {
     public class UploadHistory : IEntity
     {
@@ -10,6 +12,7 @@
         public string CommitMessage { get; set; }
         public string Repo { get; set; }
         public string Branch { get; set; }
+        public PicRepoType PicRepoType { get; set;  }
         public DateTime UploadTime { get; set; } = DateTime.Now;
     }
 }

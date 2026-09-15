@@ -86,13 +86,13 @@ namespace PicRepo.Client.Models.ReqResp.Gitee
         /// API 自身链接
         /// </summary>
         [JsonPropertyName("self")]
-        public string Self { get; set; }
+        public string? Self { get; set; }
 
         /// <summary>
         /// HTML 页面链接
         /// </summary>
         [JsonPropertyName("html")]
-        public string Html { get; set; }
+        public string? Html { get; set; }
     }
 
     /// <summary>

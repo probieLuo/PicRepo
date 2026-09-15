@@ -147,6 +147,9 @@ namespace PicRepo.Client.ViewModels
                     .Select(h => new HisItem
                     {
                         Url = h.Url,
+                        PicRepoType = h.PicRepoType,
+                        Repo= h.Repo,
+                        Branch =h.Branch,
                         FileName = h.FileName,
                         UploadTime = h.UploadTime,
                         FileSize = h.FileSize

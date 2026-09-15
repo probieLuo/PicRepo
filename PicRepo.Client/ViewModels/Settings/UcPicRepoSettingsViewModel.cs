@@ -28,7 +28,7 @@ namespace PicRepo.Client.ViewModels.Settings
             this.appSettings = appSettings;
 
             // Use UI copies of stored configs so we don't mutate appSettings instances (avoid wiping stored/encrypted tokens)
-            PicRepoConfigs = new ObservableCollection<IPicRepoConfig>(appSettings.PicRepoConfigs);
+            PicRepoConfigs = new ObservableCollection<IPicRepoConfig>(appSettings.PicRepoConfigs.ToArray());
             SelectedConfig = PicRepoConfigs.FirstOrDefault(i => i.IsDefault == true);
 
             AddConfigCommand = new DelegateCommand(OnAddConfig);
@@ -46,6 +46,7 @@ namespace PicRepo.Client.ViewModels.Settings
                             if(config.Value is GitHubPicRepoConfig githubconfig)
                             {
                                 SelectedGithubConfig = githubconfig;
+                                SelectedGithubConfig.Token = EncryptionHelper.DecryptString(SelectedGithubConfig.Token);
                                 SelectedGiteeConfig = null;
                             }
                             break;
@@ -53,6 +54,7 @@ namespace PicRepo.Client.ViewModels.Settings
                             if (config.Value is GiteePicRepoConfig giteeconfig)
                             {
                                 SelectedGiteeConfig = giteeconfig;
+                                SelectedGiteeConfig.Token = EncryptionHelper.DecryptString(SelectedGiteeConfig.Token);
                                 SelectedGithubConfig = null;
                             }
                             break;

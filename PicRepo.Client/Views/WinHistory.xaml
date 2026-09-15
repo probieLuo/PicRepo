@@ -91,7 +91,22 @@
                     Header="文件名"
                     IsReadOnly="True" />
                 <DataGridTextColumn
-                    Width="180"
+                    Width="60"
+                    Binding="{Binding PicRepoType}"
+                    Header="图床"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Width="80"
+                    Binding="{Binding Repo}"
+                    Header="仓库"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Width="60"
+                    Binding="{Binding Branch}"
+                    Header="分支"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Width="150"
                     Binding="{Binding UploadTime, StringFormat='yyyy-MM-dd HH:mm:ss'}"
                     Header="上传时间"
                     IsReadOnly="True" />

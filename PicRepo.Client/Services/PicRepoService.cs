@@ -6,6 +6,7 @@ using PicRepo.Client.Models;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Windows.Forms;
 
 namespace PicRepo.Client.Services
 {
@@ -19,7 +20,24 @@ namespace PicRepo.Client.Services
             _httpClient = new();
         }
 
+        #region gitee api
         public async Task<string> UploadFileGiteeAsync(string owner, string repo, byte[] bytes,
+            string pathInRepo, string accessToken, string message = "PicRepo upload file", string branch = "master")
+        {
+            var sha = await GetContentGiteeAsync(owner, repo, pathInRepo, accessToken, branch);
+            if (string.IsNullOrWhiteSpace(sha))
+            {
+                var url = await AddFileGiteeAsync(owner,repo,bytes,pathInRepo,accessToken,message,branch);
+                return url;
+            }
+            else
+            {
+                var url = await UpdateFileGiteeAsync(owner, repo, bytes, pathInRepo, sha, accessToken, message, branch);
+                return url;
+            }
+        }
+
+        public async Task<string> AddFileGiteeAsync(string owner, string repo, byte[] bytes,
             string pathInRepo, string accessToken, string message = "PicRepo upload file", string branch = "master")
         {
             string base64Content = Convert.ToBase64String(bytes);
@@ -37,16 +55,55 @@ namespace PicRepo.Client.Services
             HttpResponseMessage response = await _httpClient.PostAsync(url, content);
             string responseBody = await response.Content.ReadAsStringAsync();
             var uploadFileResp = System.Text.Json.JsonSerializer.Deserialize<Models.ReqResp.Gitee.UploadFileResp>(responseBody);
-            if (uploadFileResp == null)
+            if (uploadFileResp == null || uploadFileResp.Content == null)
                 throw new Exception("文件上传失败，响应为空");
-            if (uploadFileResp.Message == "文件名已存在" && response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-            {
-                HttpResponseMessage putResponse = await _httpClient.PutAsync(url, content);
-                string putResponseBody = await response.Content.ReadAsStringAsync();
-                uploadFileResp = System.Text.Json.JsonSerializer.Deserialize<Models.ReqResp.Gitee.UploadFileResp>(putResponseBody);
-            }
             return uploadFileResp.Content.DownloadUrl;
         }
+
+        public async Task<string> UpdateFileGiteeAsync(string owner, string repo, byte[] bytes,
+            string pathInRepo, string sha, string accessToken, string message = "PicRepo upload file", string branch = "master")
+        {
+            string base64Content = Convert.ToBase64String(bytes);
+
+            string url = $"https://gitee.com/api/v5/repos/{owner}/{repo}/contents/{pathInRepo}";
+            var data = new Models.ReqResp.Gitee.UpdateFileReq()
+            {
+                AccessToken = accessToken,
+                Message = message,
+                Branch = branch,
+                Content = base64Content,
+                Sha = sha,
+            };
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _httpClient.PutAsync(url, content);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var uploadFileResp = System.Text.Json.JsonSerializer.Deserialize<Models.ReqResp.Gitee.UploadFileResp>(responseBody);
+            if (uploadFileResp == null || uploadFileResp.Content == null)
+                throw new Exception("文件上传失败，响应为空");
+
+            return uploadFileResp.Content.DownloadUrl;
+        }
+
+        public async Task<string> GetContentGiteeAsync(string owner, string repo, string pathInRepo, string accessToken, string branch = "master")
+        {
+
+            string url = $"https://gitee.com/api/v5/repos/{owner}/{repo}/contents/{pathInRepo}";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            var content = new StringContent("{\r\n    \"access_token\": \"e8296fab920f4927566c5e28ead80a7c\"\r\n}", null, "application/json");
+            request.Content = content;
+            var response = await _httpClient.SendAsync(request);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            if (responseBody == "[]")
+                return "";
+            var FileContentResp = System.Text.Json.JsonSerializer.Deserialize<Models.ReqResp.Gitee.FileContentResp>(responseBody);
+            if (FileContentResp == null)
+                return "";
+
+            return FileContentResp.Sha??"";
+        }
+        #endregion
 
         /// <summary>
         /// 将图片（字节数组）上传到指定仓库的指定路径。如果文件已存在则更新，否则创建新文件。
@@ -124,6 +181,7 @@ namespace PicRepo.Client.Services
                                 UploadTime = DateTime.UtcNow.ToLocalTime(),
                                 Url = url,
                                 FileSize = (ulong)bytes.Length,
+                                PicRepoType = PicRepoType.GitHub,
                             };
                             db.UploadHistorys.Add(hisModel);
                             await db.SaveChangesAsync();
@@ -156,7 +214,8 @@ namespace PicRepo.Client.Services
                                 UploadTime = DateTime.UtcNow.ToLocalTime(),
                                 Url = url,
                                 FileSize = (ulong)bytes.Length,
-                            };
+								PicRepoType = PicRepoType.Gitee,
+							};
                             db.UploadHistorys.Add(hisModel);
                             await db.SaveChangesAsync();
                         }
