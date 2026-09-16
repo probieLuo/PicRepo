@@ -16,8 +16,8 @@ namespace PicRepo.Client.ViewModels.Settings
 
 		public string ApplicationName { get; set; }
         public string? Version { get; set; }
-        public string HelpUrl { get; set; } = "https://github.com/probieLuo/PicRepo#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"; 
-
+        public string HelpUrl { get; set; } = "https://github.com/probieLuo/PicRepo#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95";
+        public string Description { get; set; } = "PicRepo 是一个轻量、实用的桌面端图片上传工具，适合需要高频上传图片并快速复制链接的场景";
 		public DelegateCommand<RequestNavigateEventArgs> OpenHelpCommand { get; }
 
         public UcAboutViewModel()

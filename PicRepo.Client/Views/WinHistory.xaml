@@ -97,6 +97,11 @@
                     IsReadOnly="True" />
                 <DataGridTextColumn
                     Width="80"
+                    Binding="{Binding Owner}"
+                    Header="用户"
+                    IsReadOnly="True" />
+                <DataGridTextColumn
+                    Width="80"
                     Binding="{Binding Repo}"
                     Header="仓库"
                     IsReadOnly="True" />

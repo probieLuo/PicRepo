@@ -10,6 +10,7 @@ namespace PicRepo.Client.Models
 		public string FileName { get; set; }
         public ulong FileSize { get; set; }
         public string Url { get; set; }
+        public string Owner { get; set; }
         public DateTime UploadTime { get; set; }
     }
 }

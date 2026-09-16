@@ -152,7 +152,8 @@ namespace PicRepo.Client.ViewModels
                         Branch =h.Branch,
                         FileName = h.FileName,
                         UploadTime = h.UploadTime,
-                        FileSize = h.FileSize
+                        FileSize = h.FileSize,
+                        Owner = h.Owner,
                     })
                     .ToListAsync();
 

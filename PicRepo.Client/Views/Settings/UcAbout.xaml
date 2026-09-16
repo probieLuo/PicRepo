@@ -28,6 +28,10 @@
                     帮助文档
                 </Hyperlink>
             </TextBlock>
+            <TextBlock
+                Margin="0,10,0,0"
+                Text="{Binding Description}"
+                TextWrapping="Wrap" />
         </StackPanel>
     </Grid>
 </UserControl>

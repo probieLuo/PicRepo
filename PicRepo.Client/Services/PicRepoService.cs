@@ -15,6 +15,14 @@ namespace PicRepo.Client.Services
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly HttpClient _httpClient;
 
+        private static string BuildRepositoryRelativePath(string filePath)
+        {
+            var now = DateTime.Now;
+            var folder = $"{now:yyyy}/{now:MM}/{now:dd}";
+            var fileName = Path.GetFileName(filePath);
+            return $"{folder}/{fileName}".Replace('\\', '/');
+        }
+
         public PicRepoService()
         {
             _httpClient = new();
@@ -160,13 +168,15 @@ namespace PicRepo.Client.Services
         {
             if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException("filePath required", nameof(filePath));
             byte[] bytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
             switch (config.PicRepoType)
             {
                 case PicRepoType.GitHub:
                     if (config is GitHubPicRepoConfig gitHubConfig)
                     {
                         var token = PicRepo.Client.Helper.EncryptionHelper.DecryptString(gitHubConfig.Token);
-                        var url = await UploadFileGithubAsync(gitHubConfig.Owner, gitHubConfig.Repo, token, gitHubConfig.ProductHeader, bytes, Path.GetFileName(filePath), message, gitHubConfig.Branch);
+                        var relativePath = BuildRepositoryRelativePath(filePath);
+                        var url = await UploadFileGithubAsync(gitHubConfig.Owner, gitHubConfig.Repo, token, gitHubConfig.ProductHeader, bytes, relativePath, message, gitHubConfig.Branch);
                         UploadHistory? hisModel = null;
                         try
                         {
@@ -182,7 +192,8 @@ namespace PicRepo.Client.Services
                                 Url = url,
                                 FileSize = (ulong)bytes.Length,
                                 PicRepoType = PicRepoType.GitHub,
-                            };
+								Owner = gitHubConfig.Owner,
+							};
                             db.UploadHistorys.Add(hisModel);
                             await db.SaveChangesAsync();
                         }
@@ -199,7 +210,8 @@ namespace PicRepo.Client.Services
                     if (config is GiteePicRepoConfig giteeConfig)
                     {
                         var token = PicRepo.Client.Helper.EncryptionHelper.DecryptString(giteeConfig.Token);
-                        var url = await UploadFileGiteeAsync(giteeConfig.Owner, giteeConfig.Repo, bytes, Path.GetFileName(filePath), token, message, giteeConfig.Branch);
+                        var relativePath = BuildRepositoryRelativePath(filePath);
+                        var url = await UploadFileGiteeAsync(giteeConfig.Owner, giteeConfig.Repo, bytes, relativePath, token, message, giteeConfig.Branch);
                         UploadHistory? hisModel = null;
                         try
                         {
@@ -215,6 +227,7 @@ namespace PicRepo.Client.Services
                                 Url = url,
                                 FileSize = (ulong)bytes.Length,
 								PicRepoType = PicRepoType.Gitee,
+                                Owner = giteeConfig.Owner,
 							};
                             db.UploadHistorys.Add(hisModel);
                             await db.SaveChangesAsync();

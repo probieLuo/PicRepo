@@ -12,6 +12,7 @@ namespace PicRepo.Client.Models
         public string CommitMessage { get; set; }
         public string Repo { get; set; }
         public string Branch { get; set; }
+        public string Owner { get; set; }
         public PicRepoType PicRepoType { get; set;  }
         public DateTime UploadTime { get; set; } = DateTime.Now;
     }

@@ -12,9 +12,11 @@ using PicRepo.Client.Views;
 using PropertyChanged;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
-using System.Windows;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
+using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace PicRepo.Client.ViewModels
 {
@@ -64,8 +66,10 @@ namespace PicRepo.Client.ViewModels
         public DelegateCommand GetHTMLCommand { get; }
         public DelegateCommand GetURLCommand { get; }
         public DelegateCommand GetImageCommand { get; }
+        public DelegateCommand ClipboardUploadCommand { get; }
 
-        public MainWindowViewModel(IContainerProvider container, IAppSettings appSettings, IEventAggregator aggregator)
+
+		public MainWindowViewModel(IContainerProvider container, IAppSettings appSettings, IEventAggregator aggregator)
         {
             this.container = container;
             this.appSettings = appSettings;
@@ -89,14 +93,131 @@ namespace PicRepo.Client.ViewModels
             GetHTMLCommand = new DelegateCommand(OnGetHTML);
             GetURLCommand = new DelegateCommand(OnGetURL);
             GetImageCommand = new DelegateCommand(OnGetImage);
+            ClipboardUploadCommand = new DelegateCommand(OnClipboardUpload);
 
-            aggregator.GetEvent<ClearHisEvent>().Subscribe(() =>
+			aggregator.GetEvent<ClearHisEvent>().Subscribe(() =>
             {
                 HisItems?.Clear();
             });
         }
 
-        public async Task Refresh()
+		private static string SaveBitmapSourceToTempFile(BitmapSource bitmapSource)
+		{
+			string path = Path.Combine(Path.GetTempPath(), $"picrepo-{Guid.NewGuid():N}.png");
+			var encoder = new PngBitmapEncoder();
+			encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+			using var stream = File.Create(path);
+			encoder.Save(stream);
+			return path;
+		}
+
+		private static bool IsImageUrl(string? text)
+		{
+			if (string.IsNullOrWhiteSpace(text)) return false;
+
+			var trimmed = text.Trim();
+			if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri)) return false;
+
+			if (!uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+				&& !uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+
+			var extension = Path.GetExtension(uri.AbsolutePath);
+			return !string.IsNullOrWhiteSpace(extension)
+				&& IsImageFile(extension);
+		}
+
+		private static async Task<string?> DownloadImageUrlToTempFileAsync(string url)
+		{
+			using var client = new HttpClient();
+			byte[] data = await client.GetByteArrayAsync(url);
+			var extension = Path.GetExtension(new Uri(url).AbsolutePath);
+			if (string.IsNullOrWhiteSpace(extension))
+			{
+				extension = ".png";
+			}
+
+			var path = Path.Combine(Path.GetTempPath(), $"picrepo-{Guid.NewGuid():N}{extension}");
+			await File.WriteAllBytesAsync(path, data);
+			return path;
+		}
+
+		private async void OnClipboardUpload()
+		{
+			if (IsUploading) return;
+			IsUploading = true;
+			try
+			{
+				var clipboardData = Clipboard.GetDataObject();
+				if (clipboardData == null)
+				{
+					trayIcon?.ShowBalloonTip("提示", "剪贴板中没有可上传的图片内容。", BalloonIcon.Info);
+					return;
+				}
+
+				var filePaths = new List<string>();
+
+				if (clipboardData.GetDataPresent(DataFormats.FileDrop))
+				{
+					if (clipboardData.GetData(DataFormats.FileDrop) is string[] dropFiles)
+					{
+						filePaths.AddRange(dropFiles.Where(IsImageFile));
+					}
+				}
+
+				if (clipboardData.GetDataPresent(DataFormats.Text))
+				{
+					var text = clipboardData.GetData(DataFormats.Text)?.ToString();
+					if (!string.IsNullOrWhiteSpace(text))
+					{
+						var trimmed = text.Trim().Trim('"', '\'');
+						if (IsImageUrl(trimmed))
+						{
+							var imageUrlFile = await DownloadImageUrlToTempFileAsync(trimmed);
+							if (!string.IsNullOrWhiteSpace(imageUrlFile))
+							{
+								filePaths.Add(imageUrlFile);
+							}
+						}
+						else if (File.Exists(trimmed) && IsImageFile(trimmed))
+						{
+							filePaths.Add(trimmed);
+						}
+					}
+				}
+
+				if (Clipboard.ContainsImage())
+				{
+					var image = Clipboard.GetImage();
+					if (image != null)
+					{
+						filePaths.Add(SaveBitmapSourceToTempFile(image));
+					}
+				}
+
+				var validFiles = filePaths.Where(File.Exists).Distinct().ToList();
+				if (validFiles.Count == 0)
+				{
+					trayIcon?.ShowBalloonTip("提示", "剪贴板中没有图片文件、图片链接或截图。", BalloonIcon.Info);
+					return;
+				}
+
+				await UploadFilesAsync(validFiles);
+			}
+			catch (Exception ex)
+			{
+				trayIcon?.ShowBalloonTip("错误", $"从剪贴板上传失败：{ex.Message}", BalloonIcon.Error);
+				_logger.Error(ex, "从剪贴板上传失败");
+			}
+			finally
+			{
+				IsUploading = false;
+			}
+		}
+
+		public async Task Refresh()
         {
             using (var db = new AppDbContext())
             {
@@ -186,8 +307,21 @@ namespace PicRepo.Client.ViewModels
 
         private void OnLoaded()
         {
-            Application.Current.Dispatcher.BeginInvoke(new Action(async () => await Refresh()),
-                System.Windows.Threading.DispatcherPriority.Background);
+            //await Refresh();
+			Application.Current.Dispatcher.BeginInvoke(new Action(async () => await Refresh()), System.Windows.Threading.DispatcherPriority.Background);
+		}
+
+        private static bool IsImageFile(string filePath)
+        {
+            var extension = Path.GetExtension(filePath);
+            if (string.IsNullOrWhiteSpace(extension)) return false;
+
+            return string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, ".png", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, ".gif", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, ".bmp", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, ".webp", StringComparison.OrdinalIgnoreCase);
         }
 
         private void OnPreviewDragOver(DragEventArgs e)
@@ -195,7 +329,7 @@ namespace PicRepo.Client.ViewModels
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files.Length > 0 && (files[0].EndsWith(".jpg") || files[0].EndsWith(".png") || files[0].EndsWith(".jpeg") || files[0].EndsWith(".gif")))
+                if (files.Length > 0 && files.Any(IsImageFile))
                 {
                     e.Effects = DragDropEffects.Copy;
                 }
@@ -211,6 +345,44 @@ namespace PicRepo.Client.ViewModels
             e.Handled = true;
         }
 
+        private async Task UploadFilesAsync(IEnumerable<string> filePaths)
+        {
+            var files = filePaths.Where(File.Exists).Distinct().ToList();
+            if (files.Count == 0) return;
+
+            var config = appSettings.PicRepoConfigs.FirstOrDefault(c => c.IsDefault);
+            if (config == null)
+            {
+                trayIcon?.ShowBalloonTip("错误", "请先配置默认图床后再上传图片。", BalloonIcon.Error);
+                return;
+            }
+
+            foreach (var filePath in files)
+            {
+                var repoService = new PicRepoService();
+                var result = await repoService.UploadAsync(config, filePath);
+
+                if (!string.IsNullOrEmpty(result.url))
+                {
+                    GetDefaultClipboard(result.url);
+                }
+
+                if (result.hisItem != null)
+                {
+                    HisItems.Insert(0, result.hisItem.Adapt<HisItem>());
+                }
+            }
+
+            if (files.Count > 1)
+            {
+                trayIcon?.ShowBalloonTip("提示", $"已批量上传 {files.Count} 张图片，链接已复制到剪贴板。", BalloonIcon.Info);
+            }
+            else
+            {
+                trayIcon?.ShowBalloonTip("提示", "图片上传成功！地址已复制到粘贴板", BalloonIcon.Info);
+            }
+        }
+
         private async void OnUploadImageDrop(DragEventArgs e)
         {
             if (IsUploading) return;
@@ -222,28 +394,10 @@ namespace PicRepo.Client.ViewModels
 
                 if (e.Data.GetData(DataFormats.FileDrop) is not string[] files || files.Length == 0) return;
 
-                // 仅处理第一个文件
-                string filePath = files[0];
-                if (!File.Exists(filePath)) return;
+                var imageFiles = files.Where(IsImageFile).ToList();
+                if (imageFiles.Count == 0) return;
 
-                IPicRepoConfig? config = appSettings.PicRepoConfigs.FirstOrDefault(c => c.IsDefault);
-                
-                
-                if (config != null)
-                {
-                    PicRepoService repoService = new PicRepoService();
-                    var result = await repoService.UploadAsync(config,filePath);
-
-                    if (!string.IsNullOrEmpty(result.url))
-                    {
-                        trayIcon?.ShowBalloonTip("提示", $"图片上传成功！地址已复制到粘贴板", BalloonIcon.Info);
-                        GetDefaultClipboard(result.url);
-                    }
-                    if (result.hisItem != null)
-                    {
-                        HisItems.Insert(0, result.hisItem.Adapt<HisItem>());
-                    }
-                }
+                await UploadFilesAsync(imageFiles);
             }
             catch (Exception ex)
             {
@@ -277,9 +431,9 @@ namespace PicRepo.Client.ViewModels
             }
             else
             {
-                var win = container.Resolve<WinMini>();
-                win.Close();
-            }
+				var win = container.Resolve<WinMini>();
+				win.Close();
+			}
         }
 
         private void OnOpenHelpWin()
@@ -331,26 +485,14 @@ namespace PicRepo.Client.ViewModels
             IsUploading = true;
             try
             {
-                var dlg = new OpenFileDialog() { Filter = "图片文件|*.jpg;*.jpeg;*.png;*.gif" };
+                var dlg = new OpenFileDialog()
+                {
+                    Filter = "图片文件|*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.webp",
+                    Multiselect = true
+                };
                 if (dlg.ShowDialog() == true)
                 {
-                    string filePath = dlg.FileName;
-                    IPicRepoConfig? config = appSettings.PicRepoConfigs.FirstOrDefault(c => c.IsDefault);
-                    if (config != null)
-                    {
-                        PicRepoService repoService = new PicRepoService();
-                        var result = await repoService.UploadAsync(config, filePath);
-
-                        if (!string.IsNullOrEmpty(result.url))
-                        {
-                            trayIcon?.ShowBalloonTip("提示", $"图片上传成功！地址已复制到粘贴板", BalloonIcon.Info);
-                            GetDefaultClipboard(result.url);
-                        }
-                        if (result.hisItem != null)
-                        {
-                            HisItems.Insert(0, result.hisItem.Adapt<HisItem>());
-                        }
-                    }
+                    await UploadFilesAsync(dlg.FileNames);
                 }
             }
             catch (Exception e)
