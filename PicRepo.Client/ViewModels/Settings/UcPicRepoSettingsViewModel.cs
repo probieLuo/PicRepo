@@ -1,4 +1,5 @@
 ﻿using DynamicData.Binding;
+using Mapster;
 using PicRepo.Client.Helper;
 using PicRepo.Client.Models;
 using PicRepo.Client.Views.Settings;
@@ -45,16 +46,18 @@ namespace PicRepo.Client.ViewModels.Settings
                         case PicRepoType.GitHub:
                             if(config.Value is GitHubPicRepoConfig githubconfig)
                             {
-                                SelectedGithubConfig = githubconfig;
-                                SelectedGithubConfig.Token = EncryptionHelper.DecryptString(SelectedGithubConfig.Token);
+                                SelectedGithubConfig = new GitHubPicRepoConfig();
+								githubconfig.Adapt(SelectedGithubConfig);
+								SelectedGithubConfig.Token = "";
                                 SelectedGiteeConfig = null;
                             }
                             break;
                         case PicRepoType.Gitee:
                             if (config.Value is GiteePicRepoConfig giteeconfig)
                             {
-                                SelectedGiteeConfig = giteeconfig;
-                                SelectedGiteeConfig.Token = EncryptionHelper.DecryptString(SelectedGiteeConfig.Token);
+                                SelectedGiteeConfig = new GiteePicRepoConfig();
+								giteeconfig.Adapt(SelectedGiteeConfig);
+								SelectedGiteeConfig.Token = "";
                                 SelectedGithubConfig = null;
                             }
                             break;

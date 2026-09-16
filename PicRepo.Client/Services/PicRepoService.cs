@@ -168,14 +168,13 @@ namespace PicRepo.Client.Services
         {
             if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException("filePath required", nameof(filePath));
             byte[] bytes = await System.IO.File.ReadAllBytesAsync(filePath);
-
-            switch (config.PicRepoType)
+			var relativePath = BuildRepositoryRelativePath(filePath);
+			switch (config.PicRepoType)
             {
                 case PicRepoType.GitHub:
                     if (config is GitHubPicRepoConfig gitHubConfig)
                     {
                         var token = PicRepo.Client.Helper.EncryptionHelper.DecryptString(gitHubConfig.Token);
-                        var relativePath = BuildRepositoryRelativePath(filePath);
                         var url = await UploadFileGithubAsync(gitHubConfig.Owner, gitHubConfig.Repo, token, gitHubConfig.ProductHeader, bytes, relativePath, message, gitHubConfig.Branch);
                         UploadHistory? hisModel = null;
                         try
@@ -210,7 +209,6 @@ namespace PicRepo.Client.Services
                     if (config is GiteePicRepoConfig giteeConfig)
                     {
                         var token = PicRepo.Client.Helper.EncryptionHelper.DecryptString(giteeConfig.Token);
-                        var relativePath = BuildRepositoryRelativePath(filePath);
                         var url = await UploadFileGiteeAsync(giteeConfig.Owner, giteeConfig.Repo, bytes, relativePath, token, message, giteeConfig.Branch);
                         UploadHistory? hisModel = null;
                         try
