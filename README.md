@@ -8,26 +8,13 @@ PicRepo 是一个基于 Windows WPF 的图片托管工具，适合把本地图�
 - 支持拖拽上传和手动上传、剪切板上传（截图、文件、url、文件地址）
 - 自动保存上传历史
 - 支持不同复制格式（URL / Markdown / HTML）
-- 以托盘方式运行，减少干扰
-
-## 项目概述
-
-此项目是一个桌面端工具，代码主要位于 `PicRepo.Client`，使用以下技术实现：
-
-- .NET 10 + WPF
-- Prism + MVVM
-- SQLite（上传历史存储）
-- Entity Framework Core
-- GitHub / Gitee API
-- 配置文件：`config.yaml`
-- 托盘通知：Hardcodet.NotifyIcon.Wpf
 
 ## 主要功能
 
 1. 图片上传
-   - 支持拖拽图片到主窗口
-   - 支持通过“点击上传”选择本地图片
-   - 支持剪切板上传（截图、文件、url、文件地址）
+   - 拖拽图片到主窗口
+   - 通过“点击上传”选择本地图片
+   - 剪切板上传（截图、文件、url、文件地址）
    - 自动检测默认图床配置，上传到对应仓库
 
 2. 图床支持
@@ -40,17 +27,6 @@ PicRepo 是一个基于 Windows WPF 的图片托管工具，适合把本地图�
    - Markdown：`![](...)`
    - HTML：`<img src="..." />`
    - 可在设置中统一指定默认复制格式
-
-4. 上传历史
-   - 保存上传历史记录
-   - 可按文件名搜索
-   - 可从历史记录中复制 URL / Markdown / HTML
-   - 可查看图片预览
-
-5. 托盘与界面
-   - 最小化/关闭时支持托盘运行
-   - 可切换浅色/深色/跟随系统主题
-   - 可打开迷你窗口模式
 
 ### 界面截图
 
@@ -95,34 +71,6 @@ PicRepo/
 │  ├─ Migrations/
 │  └─ ...
 └─ .gitignore
-```
-
-## 运行环境
-
-- Windows 10 / 11
-- .NET 10 SDK
-- WPF 支持
-
-## 快速开始
-
-### 1. 安装依赖
-
-在项目根目录执行：
-
-```bash
-dotnet restore
-```
-
-### 2. 编译项目
-
-```bash
-dotnet build PicRepo.slnx
-```
-
-### 3. 运行程序
-
-```bash
-dotnet run --project PicRepo.Client/PicRepo.Client.csproj
 ```
 
 ## 使用方法
@@ -172,7 +120,7 @@ dotnet run --project PicRepo.Client/PicRepo.Client.csproj
 
 在主窗口点击“点击上传”，选择本地图片文件。上传逻辑和拖拽上传一致。还支持剪切板上传（截图、文件、url、文件地址）
 
-### 4. 使用历史记录
+### 4. 历史记录
 
 主窗口右侧会显示最近上传历史。
 
@@ -226,10 +174,6 @@ PicRepo 是一个轻量、实用的桌面端图片托管工具，适合需要高
 - URL
 - Markdown
 - HTML
-
-### 关闭程序后没有退出
-
-这是程序的托盘行为设计，通常需要在设置中关闭“最小化到托盘”。
 
 ### 复制到剪贴板的url无法在web打开
 
